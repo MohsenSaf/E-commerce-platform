@@ -2,10 +2,15 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@libs/*": ["libs/*/src"]
+      "@libs/*": ["libs/*/src"],
+      "@auth/*": ["microservice-auth/src/*"]
     },
     "module": "commonjs",
     "target": "es2017",
     "declaration": true
-  }
+  },
+  "include": [
+    "gateway/src",
+    "microservice-*/src"
+  ]
 }

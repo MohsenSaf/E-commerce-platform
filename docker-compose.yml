@@ -1,0 +1,36 @@
+services:
+  auth-db:
+    image: postgres:16
+    container_name: auth_db
+    environment:
+      POSTGRES_USER: auth
+      POSTGRES_PASSWORD: auth
+      POSTGRES_DB: auth_db
+    ports:
+      - "6001:5432"
+    volumes:
+      - auth_data:/var/lib/postgresql/data
+    networks:
+      - e_commerce
+
+  product-db:
+    image: postgres:16
+    container_name: product_db
+    environment:
+      POSTGRES_USER: product
+      POSTGRES_PASSWORD: product
+      POSTGRES_DB: product_db
+    ports:
+      - "6002:5432"
+    volumes:
+      - product_data:/var/lib/postgresql/data
+    networks:
+      - e_commerce
+
+volumes:
+  auth_data:
+  product_data:
+
+networks:
+  e_commerce:
+    driver: bridge
