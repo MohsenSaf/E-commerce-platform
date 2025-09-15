@@ -2,7 +2,11 @@
   "private": true,
   "workspaces": [
     "gateway",
-    "microservice-*",
+    "microservice-auth",
+    "microservice-product",
     "libs/*"
-  ]
+  ],
+  "devDependencies": {
+    "typescript": "^5.1.6"
+  }
 }
