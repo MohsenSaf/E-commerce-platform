@@ -21,7 +21,8 @@ yarn-error.log*
 **/prisma/dev.db
 **/prisma/migrations/
 **/prisma/.env
-**/generated/prisma
+**/generated
+
 
 
 # -----------------------
