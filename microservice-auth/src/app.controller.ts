@@ -10,7 +10,7 @@ import { MessagePattern, RpcException } from '@nestjs/microservices';
 export class AppController {
   constructor(private appService: AppService) {}
 
-  @MessagePattern('signup')
+  @MessagePattern('register')
   async signup(@Body() dto: CreateUserDto) {
     const hashedPassword = await this.appService.hashPassword(dto.password);
     const user = await this.appService['prisma'].user.create({
