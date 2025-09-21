@@ -6,8 +6,8 @@ import { PrismaService } from './prisma/prisma.service';
 import { APP_FILTER } from '@nestjs/core';
 import { PrismaExceptionFilter } from './common/filters/prisma-client-exceptions.filter';
 import { ProductModule } from './product/product.module';
+import { AuthModule } from './auth/auth.module';
 import { CategoryModule } from './category/category.module';
-import { AuthModule } from './auth/auth.module'; // 👈
 
 @Module({
   imports: [

@@ -5,13 +5,13 @@ import { RolesGuard } from '@/common/guards/roles.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 
-@Controller('product')
+@Controller('')
 export class ProductController {
   constructor(private productService: ProductService) {}
 
   @UseGuards(RpcJwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
-  @MessagePattern('create')
+  @MessagePattern('product.create')
   async createProduct(@Payload() payload: any) {
     const { addProductDto } = payload;
     return await this.productService.createProduct(addProductDto);
@@ -19,7 +19,7 @@ export class ProductController {
 
   @UseGuards(RpcJwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
-  @MessagePattern('update')
+  @MessagePattern('product.update')
   async updateProduct(@Payload() payload: any) {
     const { updateProductDto, id } = payload;
     return await this.productService.updateProduct(id, updateProductDto);
@@ -27,19 +27,19 @@ export class ProductController {
 
   @UseGuards(RpcJwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
-  @MessagePattern('delete')
+  @MessagePattern('product.delete')
   async deleteProduct(@Payload() payload: any) {
     const { id } = payload;
     return await this.productService.deleteProduct(id);
   }
 
-  @MessagePattern('product')
+  @MessagePattern('product.get')
   async getProduct(@Payload() payload: any) {
     const { id } = payload;
     return await this.productService.getProduct(id);
   }
 
-  @MessagePattern('productList')
+  @MessagePattern('product.list')
   async getProductList(@Payload() payload: any) {
     const { page, pageSize, searchText } = payload;
 

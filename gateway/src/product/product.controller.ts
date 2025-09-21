@@ -17,13 +17,13 @@ import { AddProductDto } from './dto/add.dto';
 import { UpdateProductDto } from './dto/update.dto';
 import { extractToken } from 'src/utils/extarctToken';
 
-@Controller('product')
+@Controller('products')
 export class ProductController {
   constructor(
     @Inject('PRODUCT_SERVICE') private readonly productClient: ClientProxy,
   ) {}
 
-  @Post('create')
+  @Post('')
   async createProduct(
     @Body() addProductDto: AddProductDto,
     @Req() req: Request,
@@ -31,7 +31,7 @@ export class ProductController {
     const token = extractToken(req);
 
     return await firstValueFrom(
-      this.productClient.send('create', {
+      this.productClient.send('product.create', {
         token,
         addProductDto,
       }),
@@ -47,7 +47,7 @@ export class ProductController {
     const token = extractToken(req);
 
     return await firstValueFrom(
-      this.productClient.send(`update`, {
+      this.productClient.send(`product.update`, {
         token,
         id,
         updateProductDto,
@@ -61,14 +61,14 @@ export class ProductController {
     const token = extractToken(req);
 
     return await firstValueFrom(
-      this.productClient.send(`delete`, {
+      this.productClient.send(`product.delete`, {
         token,
         id,
       }),
     );
   }
 
-  @Get('list')
+  @Get('')
   async getProductList(
     @Query() query: { pageSize: number; page: number; searchText?: string },
     @Req() req: Request,
@@ -76,7 +76,7 @@ export class ProductController {
     const token = extractToken(req);
     const { pageSize, page, searchText } = query;
     return await firstValueFrom(
-      this.productClient.send('productList', {
+      this.productClient.send('product.list', {
         token,
         page: Number(page),
         pageSize: Number(pageSize),
@@ -85,10 +85,10 @@ export class ProductController {
     );
   }
 
-  @Get(':id')
+  @Get('/:id')
   async getProduct(@Param('id') id: string) {
     return await firstValueFrom(
-      this.productClient.send('product', {
+      this.productClient.send('product.get', {
         id,
       }),
     );
