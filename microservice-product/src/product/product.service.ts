@@ -1,5 +1,5 @@
-import { AddProductDto } from '@/dto/add.dto';
-import { UpdateProductDto } from '@/dto/update.dto';
+import { AddProductDto } from '@/product/dto/add.dto';
+import { UpdateProductDto } from '@/product/dto/update.dto';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/generate/client';
