@@ -3,26 +3,23 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { PrismaService } from './prisma/prisma.service';
-import { JwtModule } from '@nestjs/jwt';
-import { PassportModule } from '@nestjs/passport';
-import { APP_FILTER, APP_GUARD } from '@nestjs/core';
+import { APP_FILTER } from '@nestjs/core';
 import { PrismaExceptionFilter } from './common/filters/prisma-client-exceptions.filter';
-import { RpcJwtAuthGuard } from './common/guards/jwtAuth.guard';
+import { ProductModule } from './product/product.module';
+import { CategoryModule } from './category/category.module';
+import { AuthModule } from './auth/auth.module'; // 👈
 
 @Module({
   imports: [
     PrismaModule,
-    PassportModule.register({ defaultStrategy: 'jwt' }),
-    JwtModule.register({
-      secret: process.env.JWT_ACCESS_SECRET || 'secret',
-      signOptions: { expiresIn: '1h' },
-    }),
+    AuthModule, 
+    ProductModule,
+    CategoryModule,
   ],
   controllers: [AppController],
   providers: [
     AppService,
     PrismaService,
-    JwtModule,
     {
       provide: APP_FILTER,
       useClass: PrismaExceptionFilter,
