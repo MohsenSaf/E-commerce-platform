@@ -2,9 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { RegisterDto } from 'src/shared/dto/register.dto';
+import { RegisterDto } from 'src/modules/auth/dto/register.dto';
 import { AuthenticatedUser } from './interfaces/authenticated-user.interface';
-import { JwtPayload } from './interfaces/jwt-payload.iterface';
+import { JwtPayload } from './interfaces/jwt-payload.interface';
 
 @Injectable()
 export class AuthService {
@@ -12,29 +12,32 @@ export class AuthService {
     private usersService: UsersService,
     private jwtService: JwtService,
   ) {}
-
-  // called by LocalStrategy
   async validateUser(email: string, password: string) {
     const user = await this.usersService.findByEmail(email);
     if (user && (await bcrypt.compare(password, user.password))) {
-      return user;
+      const { password: _, ...result } = user;
+      return result;
     }
     return null;
   }
 
-  login(user: AuthenticatedUser) {
+  async login(user: AuthenticatedUser) {
     const payload: JwtPayload = {
       sub: user.id,
       email: user.email,
     };
-
     return {
-      access_token: this.jwtService.sign(payload),
+      access_token: await this.jwtService.signAsync(payload),
     };
   }
 
   async register(dto: RegisterDto) {
     const hashed = await bcrypt.hash(dto.password, 10);
-    return this.usersService.create({ ...dto, password: hashed });
+    const user = await this.usersService.create({
+      email: dto.email,
+      password: hashed,
+      username: dto.username,
+    });
+    return { ...user, password: null };
   }
 }
