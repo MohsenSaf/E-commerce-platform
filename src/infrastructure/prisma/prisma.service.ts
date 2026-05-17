@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { PrismaPg } from '@prisma/adapter-pg';
 
@@ -12,7 +10,7 @@ export class PrismaService
 {
   constructor() {
     const adapter = new PrismaPg({
-      connectionString: process.env.DATABASE_URL || 'secret',
+      connectionString: process.env.DATABASE_URL!,
     });
     super({ adapter });
   }
