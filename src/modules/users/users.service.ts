@@ -20,6 +20,7 @@ export class UsersService {
         email: true,
         username: true,
         role: true,
+        isEmailVerified: true,
         // no password
       },
     });
@@ -46,5 +47,19 @@ export class UsersService {
       }
       throw error;
     }
+  }
+
+  async updatePassword(userId: string, newPassword: string) {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { password: newPassword },
+    });
+  }
+
+  async markEmailVerified(userId: string) {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { isEmailVerified: true },
+    });
   }
 }

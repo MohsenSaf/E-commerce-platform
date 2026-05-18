@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Post,
+  Query,
   Req,
   Res,
   UnauthorizedException,
@@ -19,6 +20,8 @@ import { LoginDto } from './dto/login.dto';
 import { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { RequestWithCookies } from './interfaces/request-with-cookies.interface';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 @ApiTags('Auth')
 @ApiBearerAuth()
 @Controller('auth')
@@ -39,8 +42,13 @@ export class AuthController {
   }
 
   @Post('register')
-  register(@Body() dto: RegisterDto) {
-    return this.authService.register(dto);
+  async register(
+    @Body() dto: RegisterDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { accessToken, refreshToken } = await this.authService.register(dto);
+    this.setRefreshTokenCookie(res, refreshToken);
+    return { accessToken };
   }
 
   @UseGuards(LocalAuthGuard)
@@ -91,5 +99,26 @@ export class AuthController {
 
     res.clearCookie('refreshToken'); // clear the cookie
     return { message: 'Logged out successfully' };
+  }
+
+  @Post('forgot-password')
+  forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(dto.email);
+  }
+
+  @Post('reset-password')
+  resetPassword(@Body() dto: ResetPasswordDto) {
+    return this.authService.resetPassword(dto.token, dto.newPassword);
+  }
+
+  @Get('verify-email')
+  verifyEmail(@Query('token') token: string) {
+    return this.authService.verifyEmail(token);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('resend-verification')
+  resendVerification(@CurrentUser() user: AuthenticatedUser) {
+    return this.authService.sendVerificationEmail(user.id, user.email);
   }
 }

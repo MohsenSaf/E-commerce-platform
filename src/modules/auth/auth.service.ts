@@ -1,4 +1,6 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -7,6 +9,9 @@ import { AuthenticatedUser } from './interfaces/authenticated-user.interface';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { PrismaService } from 'src/infrastructure/prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
+import { v4 as uuidv4 } from 'uuid';
+import { RedisService } from 'src/infrastructure/redis/redis.service';
+import { MailService } from 'src/infrastructure/mail/mail.service';
 
 @Injectable()
 export class AuthService {
@@ -15,6 +20,8 @@ export class AuthService {
     private jwtService: JwtService,
     private prisma: PrismaService,
     private configService: ConfigService,
+    private redisService: RedisService,
+    private mailService: MailService,
   ) {}
 
   // validate user by email and password
@@ -30,7 +37,13 @@ export class AuthService {
   }
 
   async generateTokens(user: AuthenticatedUser) {
-    const payload: JwtPayload = { sub: user.id, email: user.email };
+    const payload: JwtPayload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+      username: user.username,
+      isEmailVerified: user.isEmailVerified,
+    };
 
     const [accessToken, refreshToken] = await Promise.all([
       // generate access token
@@ -64,18 +77,6 @@ export class AuthService {
     return tokens;
   }
 
-  // add new user to table and generate token
-  async register(dto: RegisterDto) {
-    const hashed = await bcrypt.hash(dto.password, 10);
-    const user = await this.usersService.create({
-      ...dto,
-      password: hashed,
-    });
-    const tokens = await this.generateTokens(user);
-    await this.saveRefreshToken(user.id, tokens.refreshToken);
-    return tokens;
-  }
-
   //generate new tokens
   async refresh(token: string) {
     //validate old refresh token
@@ -98,6 +99,9 @@ export class AuthService {
     const user: AuthenticatedUser = {
       id: payload.sub,
       email: payload.email,
+      role: payload.role,
+      username: payload.username,
+      isEmailVerified: payload.isEmailVerified,
     };
 
     const tokens = await this.generateTokens(user);
@@ -110,5 +114,83 @@ export class AuthService {
       where: { token },
     });
     return { message: 'Logged out successfully' };
+  }
+
+  // ─── Forgot Password ───────────────────────────────────────────
+  async forgotPassword(email: string) {
+    const user = await this.usersService.findByEmail(email);
+
+    // 👇 always return same response — don't reveal if email exists
+    if (!user)
+      return { message: 'If that email exists, a reset link was sent' };
+
+    const token = uuidv4();
+    await this.redisService.set(
+      `reset:${token}`, // key
+      user.id, // value
+      60 * 15, // TTL: 15 minutes
+    );
+
+    await this.mailService.sendPasswordReset(email, token);
+    return { message: 'If that email exists, a reset link was sent' };
+  }
+
+  // ─── Reset Password ────────────────────────────────────────────
+  async resetPassword(token: string, newPassword: string) {
+    const userId = await this.redisService.get(`reset:${token}`);
+    if (!userId) throw new UnauthorizedException('Token expired or invalid');
+
+    const hashed = await bcrypt.hash(newPassword, 10);
+    await this.usersService.updatePassword(userId, hashed);
+
+    // invalidate token immediately after use
+    await this.redisService.delete(`reset:${token}`);
+
+    // invalidate all refresh tokens — force re-login
+    await this.prisma.refreshToken.deleteMany({ where: { userId } });
+
+    return { message: 'Password reset successfully' };
+  }
+
+  // ─── Send Verification Email ───────────────────────────────────
+  async sendVerificationEmail(userId: string, email: string) {
+    const token = uuidv4();
+    await this.redisService.set(
+      `verify:${token}`, // key
+      userId, // value
+      60 * 60 * 24, // TTL: 24 hours
+    );
+    await this.mailService.sendEmailVerification(email, token);
+  }
+
+  // ─── Verify Email ──────────────────────────────────────────────
+  async verifyEmail(token: string) {
+    const userId = await this.redisService.get(`verify:${token}`);
+    if (!userId) throw new UnauthorizedException('Token expired or invalid');
+
+    await this.usersService.markEmailVerified(userId);
+    await this.redisService.delete(`verify:${token}`);
+
+    return { message: 'Email verified successfully' };
+  }
+
+  // ─── Update Register to send verification ─────────────────────
+  async register(dto: RegisterDto) {
+    Logger.log('1. Starting registration');
+    const hashed = await bcrypt.hash(dto.password, 10);
+    const user = await this.usersService.create({ ...dto, password: hashed });
+
+    // send verification email after register
+    this.sendVerificationEmail(user.id, user.email)
+      .then(() => Logger.log('2. Verification email sent'))
+      .catch((err) => {
+        Logger.error('Failed to send verification email', err);
+      });
+
+    const tokens = await this.generateTokens(user);
+    await this.saveRefreshToken(user.id, tokens.refreshToken);
+
+    Logger.log('6. Done');
+    return tokens;
   }
 }

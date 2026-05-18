@@ -8,6 +8,7 @@ export class UserEntity {
   createAt: Date;
   updatedAt: Date;
   role: Role;
+  isEmailVerified: boolean;
 
   @Exclude() // 👈 this field is always stripped from responses
   password: string;
