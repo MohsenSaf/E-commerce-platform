@@ -23,8 +23,9 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 import { PaginationQueryDto } from '../../shared/dto/pagination-query.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../shared/guards/roles.guard';
-import { Role } from 'generated/prisma/client';
-import { Roles } from 'src/shared/decorators/roles.decorator';
+import { Roles } from '../../shared/decorators/roles.decorator';
+import { Role } from '../../../generated/prisma/enums';
+
 
 @ApiTags('Categories')
 @Controller('categories')
