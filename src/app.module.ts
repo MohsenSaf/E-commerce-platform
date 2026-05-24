@@ -6,6 +6,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { ConfigModule } from '@nestjs/config';
 import { AddressModule } from './modules/address/address.module';
+import { CategoriesModule } from './modules/categories/categories.module';
 import jwtConfig from './infrastructure/config/jwt.config';
 import mailConfig from './infrastructure/config/mail.config';
 
@@ -20,6 +21,7 @@ import mailConfig from './infrastructure/config/mail.config';
     AuthModule,
     UsersModule,
     AddressModule,
+    CategoriesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
