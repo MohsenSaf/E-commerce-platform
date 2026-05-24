@@ -62,7 +62,7 @@ export class CategoriesService {
           description: true,
           imageUrl: true,
           isActive: true,
-          // _count: { select: { products: true } }, // 👈 product count
+          _count: { select: { products: true } }, // 👈 product count
         },
       }),
       this.prisma.category.count({ where }),
@@ -92,7 +92,7 @@ export class CategoriesService {
         description: true,
         imageUrl: true,
         isActive: true,
-        // _count: { select: { products: true } },
+        _count: { select: { products: true } },
       },
     });
 
@@ -145,15 +145,15 @@ export class CategoriesService {
     await this.findOne(id); // verify exists
 
     // check if category has products
-    // const productCount = await this.prisma.product.count({
-    //   where: { categoryId: id },
-    // });
+    const productCount = await this.prisma.product.count({
+      where: { categoryId: id },
+    });
 
-    // if (productCount > 0) {
-    //   throw new ConflictException(
-    //     `Cannot delete category with ${productCount} products. Remove products first.`,
-    //   );
-    // }
+    if (productCount > 0) {
+      throw new ConflictException(
+        `Cannot delete category with ${productCount} products. Remove products first.`,
+      );
+    }
 
     await this.prisma.category.delete({ where: { id } });
   }
@@ -178,7 +178,7 @@ export class CategoriesService {
         skip,
         take: Number(limit),
         orderBy: { createdAt: 'desc' },
-        // include: { _count: { select: { products: true } } },
+        include: { _count: { select: { products: true } } },
       }),
       this.prisma.category.count({ where }),
     ]);

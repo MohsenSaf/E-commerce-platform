@@ -7,6 +7,7 @@ import { UsersModule } from './modules/users/users.module';
 import { ConfigModule } from '@nestjs/config';
 import { AddressModule } from './modules/address/address.module';
 import { CategoriesModule } from './modules/categories/categories.module';
+import { ProductsModule } from './modules/products/products.module';
 import jwtConfig from './infrastructure/config/jwt.config';
 import mailConfig from './infrastructure/config/mail.config';
 
@@ -22,6 +23,7 @@ import mailConfig from './infrastructure/config/mail.config';
     UsersModule,
     AddressModule,
     CategoriesModule,
+    ProductsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
