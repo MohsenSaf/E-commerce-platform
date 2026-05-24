@@ -27,6 +27,7 @@ model User {
   updatedAt DateTime @updatedAt
 
   role  Role  @default(USER)
+  addresses Address[]
 }
 
 model RefreshToken {
@@ -38,6 +39,21 @@ model RefreshToken {
   createdAt DateTime @default(now())
 }
 
+model Address {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  fullName   String
+  phone      String
+  street     String
+  city       String
+  state      String
+  country    String
+  postalCode String
+  isDefault  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
 
 enum Role {
   USER

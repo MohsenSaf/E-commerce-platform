@@ -66,13 +66,6 @@ export class AuthController {
     return { accessToken };
   }
 
-  @ApiBearerAuth('access-token')
-  @UseGuards(JwtAuthGuard)
-  @Get('profile')
-  profile(@Req() req: { user: AuthenticatedUser }) {
-    return req.user;
-  }
-
   @Post('refresh')
   async refresh(
     @Req() req: RequestWithCookies,

@@ -1,13 +1,14 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/infrastructure/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { Prisma } from 'generated/prisma/client';
+import { Prisma, Role } from 'generated/prisma/client';
 import { UserEntity } from './entities/user.entity';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Injectable()
 export class UsersService {
   constructor(private prisma: PrismaService) {}
-
+  //-------------------Auth services-------------------
   async findByEmail(email: string) {
     return await this.prisma.user.findUnique({ where: { email } });
   }
@@ -60,6 +61,44 @@ export class UsersService {
     await this.prisma.user.update({
       where: { id: userId },
       data: { isEmailVerified: true },
+    });
+  }
+  //-------------------Profile services-------------------
+  async updateProfile(userId: string, dto: UpdateProfileDto) {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        email: dto.email,
+        username: dto.username,
+        password: dto.password,
+      },
+    });
+  }
+
+  //-------------------Admin services-------------------
+  async findAll() {
+    return await this.prisma.user.findMany({
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        role: true,
+        isEmailVerified: true,
+        // no password
+      },
+    });
+  }
+
+  async deleteUser(userId: string) {
+    await this.prisma.user.delete({
+      where: { id: userId },
+    });
+  }
+
+  async updateUserRole(userId: string, newRole: Role) {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { role: newRole },
     });
   }
 }
