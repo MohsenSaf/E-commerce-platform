@@ -95,7 +95,7 @@ export class ProductsService {
       this.prisma.product.findMany({
         where,
         skip,
-        take: limit,
+        take: Number(limit),
         orderBy: { [sortBy]: sortOrder },
         select: {
           id: true,
