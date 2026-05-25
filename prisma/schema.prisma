@@ -28,6 +28,10 @@ model User {
 
   role  Role  @default(USER)
   addresses Address[]
+
+  cartId String?
+
+  carts Cart[]
 }
 
 model RefreshToken {
@@ -81,7 +85,7 @@ model Product {
   categoryId  String
   category    Category @relation(fields: [categoryId], references: [id])
   // inventory   Inventory?
-  // cartItems   CartItem[]
+  cartItems   CartItem[]
   // orderItems  OrderItem[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -90,6 +94,29 @@ model Product {
   @@index([price])
   @@index([isActive])
 }
+
+model Cart {
+  id        String     @id @default(uuid())
+  userId    String     @unique  // 👈 one cart per user
+  user      User       @relation(fields: [userId], references: [id])
+  items     CartItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+model CartItem {
+  id        String   @id @default(uuid())
+  cartId    String              // 👈 belongs to cart not user directly
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([cartId, productId]) // 👈 one row per product, use quantity for amount
+}
+
+
 
 enum Role {
   USER
