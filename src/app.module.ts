@@ -11,6 +11,7 @@ import { ProductsModule } from './modules/products/products.module';
 import { CartModule } from './modules/cart/cart.module';
 import jwtConfig from './infrastructure/config/jwt.config';
 import mailConfig from './infrastructure/config/mail.config';
+import { OrderModule } from './modules/order/order.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import mailConfig from './infrastructure/config/mail.config';
     CategoriesModule,
     ProductsModule,
     CartModule,
+    OrderModule,
   ],
   controllers: [AppController],
   providers: [AppService],

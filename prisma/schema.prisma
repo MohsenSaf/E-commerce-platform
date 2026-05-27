@@ -30,8 +30,10 @@ model User {
   addresses Address[]
 
   cartId String?
-
   carts Cart[]
+
+  orderId String?
+  order Order[]
 }
 
 model RefreshToken {
@@ -84,9 +86,9 @@ model Product {
   isFeatured  Boolean  @default(false)
   categoryId  String
   category    Category @relation(fields: [categoryId], references: [id])
-  // inventory   Inventory?
+  inventory   Inventory?
   cartItems   CartItem[]
-  // orderItems  OrderItem[]
+  orderItems  OrderItem[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -94,6 +96,7 @@ model Product {
   @@index([price])
   @@index([isActive])
 }
+
 
 model Cart {
   id        String     @id @default(uuid())
@@ -116,9 +119,60 @@ model CartItem {
   @@unique([cartId, productId]) // 👈 one row per product, use quantity for amount
 }
 
+model Inventory {
+  id                String   @id @default(uuid())
+  stock             Int      @default(0)
+  reservedStock     Int    @default(0)
+  lowStockThreshold Int      @default(5)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  productId         String   @unique
+  product           Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
 
+
+model Order {
+  id        String      @id @default(uuid())
+  userId    String
+  user      User        @relation(fields: [userId], references: [id])
+  status    OrderStatus @default(PENDING)
+  total     Decimal     @db.Decimal(10, 2)
+  items     OrderItem[] // 👈 plural
+  // payment   Payment?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}
+
+model OrderItem {
+  id        String   @id @default(uuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Restrict) // 👈 fix
+  price     Decimal  @db.Decimal(10, 2)
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([orderId, productId])
+}
 
 enum Role {
   USER
   ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
 }
